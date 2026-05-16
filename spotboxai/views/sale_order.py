@@ -45,42 +45,36 @@ class SaleOrder(models.Model):
                                 help="Field to check the invoice state of "
                                      "sale order")
 
-    @api.depends(
-        'invoice_ids',
-        'invoice_ids.payment_state',
-        'invoice_ids.state',
-        'invoice_ids.amount_residual',
-        'amount_total',
-        'amount_due',
-    )
+    @api.depends('invoice_ids')
     def _compute_payment_status(self):
-        """Compute sale order payment status from order total vs payments received.
-
-        Invoice payment_state reflects each invoice only. The sale order must
-        compare paid amounts against the full order total so a fully paid
-        down-payment invoice on a larger order stays Partially Paid.
-        """
+        """ The function will compute the payment status of the sale order, if
+        an invoice is created for the corresponding sale order.Payment status
+        will be either in paid,not paid,partially paid, reversed etc. """
         for order in self:
+            order.payment_status = 'No invoice'
             posted_invoices = order.invoice_ids.filtered(
-                lambda inv: inv.state == 'posted'
-            )
+                lambda x: x.state == 'posted')
             if not posted_invoices:
                 order.payment_status = 'No invoice'
-                continue
-
-            payment_states = posted_invoices.mapped('payment_state')
-
-            if payment_states and all(state == 'reversed' for state in payment_states):
-                order.payment_status = 'Reversed'
-            elif order.amount_due <= 0:
-                if payment_states and all(state == 'in_payment' for state in payment_states):
-                    order.payment_status = 'In Payment'
-                else:
-                    order.payment_status = 'Paid'
-            elif order.amount_total > order.amount_due:
-                order.payment_status = 'Partially Paid'
             else:
-                order.payment_status = 'Not Paid'
+                payment_states = posted_invoices.mapped('payment_state')
+                status_length = len(payment_states)
+                if order.amount_due > 0:
+                    if 'partial' in payment_states or 'not_paid' in payment_states:
+                        order.payment_status = 'Partially Paid'
+                    elif 'not_paid' in payment_states and status_length == payment_states.count(
+                            'not_paid'):
+                        order.payment_status = 'Not Paid'
+                elif order.amount_due <= 0:  # Changed to <= 0 to handle overpayments or credit notes
+                    if 'paid' in payment_states and status_length == payment_states.count(
+                            'paid'):
+                        order.payment_status = 'Paid'
+                    elif 'in_payment' in payment_states and status_length == payment_states.count(
+                            'in_payment'):
+                        order.payment_status = 'In Payment'
+                elif 'reversed' in payment_states and status_length == payment_states.count(
+                        'reversed'):
+                    order.payment_status = 'Reversed'
 
     @api.depends('invoice_ids')
     def _compute_invoice_state(self):
@@ -96,30 +90,23 @@ class SaleOrder(models.Model):
                 else:
                     rec.invoice_state = 'No invoice'
 
-    @api.depends(
-        'invoice_ids',
-        'invoice_ids.state',
-        'invoice_ids.amount_total',
-        'invoice_ids.amount_residual',
-        'invoice_ids.move_type',
-        'amount_total',
-    )
+    @api.depends('invoice_ids')
     def _compute_amount_due(self):
-        """Amount still owed on the sale order (order total minus payments received).
+        """The function is used to compute the amount due from the invoice and
+        if payment is registered, accounting for exchange rate differences and credit notes."""
+        for rec in self:
+            total_invoiced = 0
+            total_paid = 0
+            for invoice in rec.invoice_ids.filtered(lambda x: x.state == 'posted'):
+                if invoice.move_type == 'out_invoice':  # Regular invoices
+                    total_invoiced += invoice.amount_total
+                    total_paid += invoice.amount_total - invoice.amount_residual
+                elif invoice.move_type == 'out_refund':  # Credit notes
+                    total_invoiced -= invoice.amount_total
+                    total_paid -= (
+                                invoice.amount_total - invoice.amount_residual)
 
-        Uses the sale order total, not only invoiced amounts, so partial
-        invoicing with full payment on the invoice does not mark the order paid.
-        """
-        for order in self:
-            total_paid = 0.0
-            for invoice in order.invoice_ids.filtered(lambda inv: inv.state == 'posted'):
-                paid_on_invoice = invoice.amount_total - invoice.amount_residual
-                if invoice.move_type == 'out_invoice':
-                    total_paid += paid_on_invoice
-                elif invoice.move_type == 'out_refund':
-                    total_paid -= paid_on_invoice
-
-            order.amount_due = order.amount_total - total_paid
+            rec.amount_due = total_invoiced - total_paid
 
     def action_open_business_doc(self):
         """ This method is intended to be used in the context of an

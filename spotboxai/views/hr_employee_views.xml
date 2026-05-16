@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_w9_onboarding" model="ir.ui.view">
+        <field name="name">hr.employee.form.w9.onboarding</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="W-9 / Onboarding" name="employee_w9_onboarding">
+                    <group>
+                        <group string="Taxpayer Information (Lines 1–2)">
+                            <field name="name" readonly="1"/>
+                            <field name="w9_business_name" placeholder="Business name if different from above"/>
+                        </group>
+                    </group>
+
+                    <group string="Federal Tax Classification (Line 3)">
+                        <group>
+                            <field name="w9_federal_tax_classification" widget="radio"/>
+                            <field name="w9_llc_classification"
+                                   invisible="w9_federal_tax_classification != 'llc'"
+                                   required="w9_federal_tax_classification == 'llc'"/>
+                            <field name="w9_other_classification"
+                                   invisible="w9_federal_tax_classification != 'other'"
+                                   required="w9_federal_tax_classification == 'other'"/>
+                        </group>
+                        <group>
+                            <field name="w9_foreign_partners"/>
+                        </group>
+                    </group>
+
+                    <group string="Exemptions (Line 4)">
+                        <group>
+                            <field name="w9_exempt_payee_code"/>
+                        </group>
+                        <group>
+                            <field name="w9_fatca_exemption_code"/>
+                        </group>
+                    </group>
+
+                    <group string="Address (Lines 5–6)">
+                        <group>
+                            <label for="private_street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="private_street" placeholder="Street address" class="o_address_street"/>
+                                <field name="private_street2" placeholder="Apt, suite, unit, etc." class="o_address_street"/>
+                            </div>
+                            <field name="private_city"/>
+                            <field name="private_state_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="private_zip"/>
+                            <field name="private_country_id" options="{'no_open': True, 'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group string="Account Numbers (Line 7)">
+                        <field name="w9_account_numbers" nolabel="1" placeholder="Optional account number(s)"/>
+                    </group>
+
+                    <group string="Taxpayer Identification Number – Part I">
+                        <group>
+                            <field name="w9_tax_id_type" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="w9_ssn"
+                                   invisible="w9_tax_id_type != 'ssn'"
+                                   required="w9_tax_id_type == 'ssn'"
+                                   placeholder="XXX-XX-XXXX"/>
+                            <field name="w9_ein"
+                                   invisible="w9_tax_id_type != 'ein'"
+                                   required="w9_tax_id_type == 'ein'"
+                                   placeholder="XX-XXXXXXX"/>
+                        </group>
+                    </group>
+
+                    <group string="Certification – Part II">
+                        <group>
+                            <field name="w9_certified"/>
+                            <field name="w9_certification_date"
+                                   required="w9_certified"
+                                   invisible="not w9_certified"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
