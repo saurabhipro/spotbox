@@ -1,1 +1,7 @@
 spiffy_theme_backend/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
