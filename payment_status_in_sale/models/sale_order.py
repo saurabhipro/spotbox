@@ -119,7 +119,7 @@ class SaleOrder(models.Model):
                 elif invoice.move_type == 'out_refund':
                     total_paid -= paid_on_invoice
 
-            order.amount_due = order.amount_total - total_paid
+            order.amount_due = round(order.amount_total - total_paid, 2)
 
     def action_open_business_doc(self):
         """ This method is intended to be used in the context of an
