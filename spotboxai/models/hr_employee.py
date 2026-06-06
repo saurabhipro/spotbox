@@ -18,6 +18,30 @@ class HrEmployee(models.Model):
         help='Business name / disregarded entity name, if different from the name above.',
     )
 
+    activity_ids = fields.One2many(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_ids = fields.One2many(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_state = fields.Selection(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_user_id = fields.Many2one(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_type_id = fields.Many2one(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_type_icon = fields.Char(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_date_deadline = fields.Date(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    my_activity_date_deadline = fields.Date(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_summary = fields.Char(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_exception_decoration = fields.Selection(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    activity_exception_icon = fields.Char(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+
+    # mail.thread mixin
+    message_is_follower = fields.Boolean(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_follower_ids = fields.One2many(groups="hr.group_hr_user")
+    message_partner_ids = fields.Many2many(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_ids = fields.One2many(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    has_message = fields.Boolean(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_needaction = fields.Boolean(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_needaction_counter = fields.Integer(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_has_error = fields.Boolean(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_has_error_counter = fields.Integer(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+    message_attachment_count = fields.Integer(groups="hr.group_hr_user,spotboxai.group_hr_employee_own_access")
+
     # Line 3a – Federal tax classification
     w9_federal_tax_classification = fields.Selection(
         selection=[
@@ -84,6 +108,11 @@ class HrEmployee(models.Model):
         help='Employee certifies that the information on this form is correct.',
     )
     w9_certification_date = fields.Date(string='Certification Date')
+    emp_esign = fields.Binary(
+        string='E-Signature',
+        attachment=True,
+        help='Electronic signature certifying the W-9 information.',
+    )
     w9_onboarding_complete = fields.Boolean(
         string='Onboarding Complete',
         compute='_compute_w9_onboarding_complete',
@@ -102,6 +131,7 @@ class HrEmployee(models.Model):
         'private_zip',
         'w9_certified',
         'w9_certification_date',
+        'emp_esign',
     )
     def _compute_w9_onboarding_complete(self):
         for employee in self:
@@ -119,6 +149,7 @@ class HrEmployee(models.Model):
                 and has_tin
                 and employee.w9_certified
                 and employee.w9_certification_date
+                and employee.emp_esign
             )
 
     @api.onchange('w9_tax_id_type')
@@ -167,10 +198,14 @@ class HrEmployee(models.Model):
                         'EIN must be 9 digits (e.g. 12-3456789).'
                     )
 
-    @api.constrains('w9_certified', 'w9_certification_date')
+    @api.constrains('w9_certified', 'w9_certification_date', 'emp_esign')
     def _check_w9_certification(self):
         for employee in self:
             if employee.w9_certified and not employee.w9_certification_date:
                 raise ValidationError(
                     'Certification date is required when W-9 is certified.'
+                )
+            if employee.w9_certified and not employee.emp_esign:
+                raise ValidationError(
+                    'E-signature is required when W-9 is certified.'
                 )

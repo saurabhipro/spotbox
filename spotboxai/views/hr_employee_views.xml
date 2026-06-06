@@ -1,11 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+     <record id="view_employee_form_w9_onboarding_d" model="ir.ui.view">
+        <field name="name">hr.employee.form.w9.onboarding</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+           <xpath expr="//div[@name='button_box']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_employee_form_w9_onboarding" model="ir.ui.view">
         <field name="name">hr.employee.form.w9.onboarding</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//page[@name='public']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='department_id']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='job_id']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='coach_id']" position="attributes">
+                <attribute name="groups">hr.group_hr_user,hr.group_hr_manager</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='work_email']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+         
+
             <xpath expr="//notebook" position="inside">
+                
                 <page string="W-9 / Onboarding" name="employee_w9_onboarding">
                     <group>
                         <group string="Taxpayer Information (Lines 1–2)">
@@ -78,6 +117,12 @@
                             <field name="w9_certification_date"
                                    required="w9_certified"
                                    invisible="not w9_certified"/>
+                        </group>
+                        <group string="E-Signature">
+                            <field name="emp_esign"
+                                widget="signature"
+                                required="w9_certified"
+                                invisible="not w9_certified"/>
                         </group>
                     </group>
                 </page>

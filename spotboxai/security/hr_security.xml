@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_hr_employee_own_access" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="base.module_category_human_resources_employees"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Employees can access only their own employee record.</field>
+    </record>
+
+    <record id="hr.group_hr_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_hr_employee_own_access'))]"/>
+    </record>
+
+    <record id="hr_employee_officer_record_rule" model="ir.rule">
+        <field name="name">Employee: officer access all</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="hr_employee_public_officer_record_rule" model="ir.rule">
+        <field name="name">Employee Public: officer access all</field>
+        <field name="model_id" ref="hr.model_hr_employee_public"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <data noupdate="1">
+        <record id="hr_employee_own_record_rule" model="ir.rule">
+            <field name="name">Employee: own record only</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_hr_employee_own_access'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="hr_employee_public_own_record_rule" model="ir.rule">
+            <field name="name">Employee Public: own record only</field>
+            <field name="model_id" ref="hr.model_hr_employee_public"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_hr_employee_own_access'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>

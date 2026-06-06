@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr.menu_hr_employee" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('hr.group_hr_user')])]"/>
+    </record>
+
+    <record id="action_hr_employee_own_list" model="ir.actions.act_window">
+        <field name="name">Employee</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_id" ref="hr.hr_kanban_view_employees"/>
+        <field name="search_view_id" ref="hr.view_employee_filter"/>
+        <!-- <field name="domain">[('user_id', '=', uid)]</field> -->
+        <field name="context">{'chat_icon': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No employee record linked to your user account
+            </p>
+            <p>
+                Contact your HR department to link your user account to an employee record.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_hr_employee_own"
+        name="Employee"
+        parent="hr.menu_hr_root"
+        action="action_hr_employee_own_list"
+        groups="group_hr_employee_own_access"
+        sequence="4"/>
+</odoo>

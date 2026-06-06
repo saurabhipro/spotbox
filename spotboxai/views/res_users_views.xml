@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_simple_form_inherit_spotboxai" model="ir.ui.view">
+        <field name="name">res.users.simple.form.inherit.spotboxai</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="hr.view_users_simple_form_inherit_hr"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@role='alert']" position="replace">
+                <div class="alert alert-info text-center mb-3" invisible="id &gt; 0" role="alert">
+                    Invite a new user. An employee record will be created automatically and a signup invitation will be sent to their email.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='create_employee']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_hr_users" model="ir.actions.act_window">
+        <field name="name">Users</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="base.view_users_tree"/>
+        <field name="search_view_id" ref="base.view_users_search"/>
+        <field name="domain">[('share', '=', False)]</field>
+        <field name="context">{
+            'search_default_filter_no_share': 1,
+            'from_hr_users_menu': True,
+            'default_create_employee': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Invite a new user
+            </p>
+            <p>
+                Create users from the Employees app. Each new user automatically gets an employee record and receives a signup invitation by email.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_hr_users_view_list" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="base.view_users_tree"/>
+        <field name="act_window_id" ref="action_hr_users"/>
+    </record>
+
+    <record id="action_hr_users_view_form" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="hr.view_users_simple_form"/>
+        <field name="act_window_id" ref="action_hr_users"/>
+    </record>
+
+    <menuitem
+        id="menu_hr_users"
+        name="Users"
+        parent="hr.menu_hr_root"
+        action="action_hr_users"
+        groups="hr.group_hr_user"
+        sequence="5"/>
+</odoo>
